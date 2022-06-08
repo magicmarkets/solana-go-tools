@@ -19,7 +19,7 @@ func NewMintInstruction(ctx context.Context, client *rpc.Client, decimals uint8,
 		return nil, fmt.Errorf("create token account: %w", err)
 	}
 
-	initMintInst, err := InitializeMint(ctx, decimals, mint, owner)
+	initMintInst, err := InitMintInstruction(ctx, decimals, mint, owner)
 	if err != nil {
 		return nil, fmt.Errorf("create token account: %w", err)
 	}
@@ -27,7 +27,7 @@ func NewMintInstruction(ctx context.Context, client *rpc.Client, decimals uint8,
 	return []solana.Instruction{createAccountInst, initMintInst}, nil
 }
 
-func InitializeMint(ctx context.Context, decimals uint8, mint, owner solana.PublicKey) (solana.Instruction, error) {
+func InitMintInstruction(ctx context.Context, decimals uint8, mint, owner solana.PublicKey) (solana.Instruction, error) {
 	instBuilder := token.NewInitializeMintInstructionBuilder().
 		SetDecimals(decimals).
 		SetMintAuthority(owner).
@@ -37,6 +37,21 @@ func InitializeMint(ctx context.Context, decimals uint8, mint, owner solana.Publ
 	inst, err := instBuilder.ValidateAndBuild()
 	if err != nil {
 		return nil, fmt.Errorf("initialize account: %w", err)
+	}
+
+	return inst, nil
+}
+
+func MintToInstruction(ctx context.Context, mintAccount, mintAuthority, tokenAccount solana.PublicKey, amount uint64) (solana.Instruction, error) {
+	instBuilder := token.NewMintToInstructionBuilder().
+		SetMintAccount(mintAccount).
+		SetDestinationAccount(tokenAccount).
+		SetAuthorityAccount(mintAuthority).
+		SetAmount(amount)
+
+	inst, err := instBuilder.ValidateAndBuild()
+	if err != nil {
+		return nil, fmt.Errorf("mint to: %w", err)
 	}
 
 	return inst, nil
@@ -64,19 +79,4 @@ func MintTo(ctx context.Context, client *rpc.Client, ws *ws.Client, mintAccount,
 	}
 
 	return SendTx(ctx, client, ws, []solana.Instruction{mintToInst}, []solana.PrivateKey{mintAuthority, payer}, payer, false)
-}
-
-func MintToInstruction(ctx context.Context, mintAccount, mintAuthority, tokenAccount solana.PublicKey, amount uint64) (solana.Instruction, error) {
-	instBuilder := token.NewMintToInstructionBuilder().
-		SetMintAccount(mintAccount).
-		SetDestinationAccount(tokenAccount).
-		SetAuthorityAccount(mintAuthority).
-		SetAmount(amount)
-
-	inst, err := instBuilder.ValidateAndBuild()
-	if err != nil {
-		return nil, fmt.Errorf("mint to: %w", err)
-	}
-
-	return inst, nil
 }
