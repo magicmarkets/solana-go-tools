@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 
 	"github.com/gagliardetto/solana-go"
@@ -16,25 +17,23 @@ import (
 func main() {
 	ctx := context.Background()
 
-	var authority, mintFile, receiverAddress, clusterRPC, clusterWS string
+	var payerFile, mintPubkey, clusterRPC, clusterWS string
+	var amount float64
 
-	flag.StringVar(&authority, "authority", "", "payer private key from solana-keygen file that becomes the sweep authority")
-	flag.StringVar(&mintFile, "mint", "", "mint key from solana-keygen file")
+	flag.StringVar(&payerFile, "payer", "", "payer private key from solana-keygen file")
+	flag.StringVar(&mintPubkey, "mint", "", "mint address")
+	flag.Float64Var(&amount, "amount", 1, "amount of SOL to exchange for tokens")
 	flag.StringVar(&clusterRPC, "url", rpc.LocalNet_RPC, "solana cluster rpc url")
 	flag.StringVar(&clusterWS, "ws", rpc.LocalNet_WS, "solana cluster websocket url")
 	flag.Parse()
 
-	payer, err := solana.PrivateKeyFromSolanaKeygenFile(authority)
+	payer, err := solana.PrivateKeyFromSolanaKeygenFile(payerFile)
 	if err != nil {
 		fmt.Println("solana.PrivateKeyFromSolanaKeygenFile failed:", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("payer pubkey:", payer.PublicKey())
-
-	if receiverAddress == "" {
-		receiverAddress = payer.PublicKey().String()
-	}
 
 	rpcURL, err := sgo.RPCFromMoniker(clusterRPC)
 	if err == nil {
@@ -54,13 +53,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	escrowMint, err := solana.PrivateKeyFromSolanaKeygenFile(mintFile)
+	escrowMint, err := solana.PublicKeyFromBase58(mintPubkey)
 	if err != nil {
 		fmt.Println("solana.PrivateKeyFromSolanaKeygenFile failed:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("mint: ", escrowMint.PublicKey())
+	fmt.Println("mint: ", escrowMint)
 
 	faucet, _, err := solana.FindProgramAddress([][]byte{payer.PublicKey().Bytes(), []byte("faucet_vault")}, escrow_token_mint.ProgramID)
 	if err != nil {
@@ -68,12 +67,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	builder := escrow_token_mint.NewInitializeInstruction(
+	authority, _, err := solana.FindProgramAddress([][]byte{[]byte("faucet_authority")}, escrow_token_mint.ProgramID)
+	if err != nil {
+		fmt.Println("solana.FindProgramAddress failed:", err)
+		os.Exit(1)
+	}
+
+	ata, _, err := solana.FindAssociatedTokenAddress(payer.PublicKey(), escrowMint)
+	if err != nil {
+		fmt.Println("solana.FindAssociatedTokenAddress failed:", err)
+		os.Exit(1)
+	}
+
+	_, _ = sgo.CreateAssociatedTokenAccount(ctx, rpcClient, wsClient, payer.PublicKey(), escrowMint, payer)
+
+	lamports := uint64(amount * math.Pow10(9))
+
+	builder := escrow_token_mint.NewSwapInstruction(
+		lamports,
 		payer.PublicKey(),
-		escrowMint.PublicKey(),
+		ata,
+		escrowMint,
 		faucet,
+		authority,
 		solana.SystemProgramID,
-		solana.SysVarRentPubkey,
 		solana.TokenProgramID,
 	)
 
@@ -89,6 +106,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("faucet created:", faucet.String())
+	fmt.Println("airdropped using lamports", lamports)
 	fmt.Println(sig)
 }
