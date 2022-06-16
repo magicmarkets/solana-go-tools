@@ -17,6 +17,8 @@ Create a new token keypair using the [solana toolchain](https://github.com/solan
 
     solana-keygen new --outfile mytoken.json
 
+## Create and Mint Escrow Tokens
+
 Create the mint using the keypair on devnet:
 
     go run create_escrow_mint/main.go -decimals 6 -payer ~/.config/solana/id.json -mint mytoken.json -url devnet
@@ -24,3 +26,15 @@ Create the mint using the keypair on devnet:
 Mint 100k tokens to acccount `<PUBKEY>` on devnet:
 
     go run mint_escrow_tokens/main.go -amount 100000 -mint mytoken.json -payer ~/.config/solana/id.json -receiver <PUBKEY> -url d
+
+## On-Chain Escrow Token Faucet
+
+Transfer the mint authority to an on-chain faucet on devnet:
+
+    go run init_escrow_faucet/main.go -mint mytoken.json -authority ~/.config/solana/id.json -url d
+
+Run an airdrop against the faucet. In order to avoid spam the faucet gives out
+tokens for devent SOL at a rate of 100x by default. Here we swap 1 SOL for 100
+escrow tokens:
+
+    go run faucet_airdrop/main.go -amount 1 -payer ~/.config/solana/id.json -mint <PUBKEY> -url d
