@@ -54,15 +54,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	escrowMint, err := solana.PrivateKeyFromSolanaKeygenFile(mintFile)
+	mint, err := solana.PrivateKeyFromSolanaKeygenFile(mintFile)
 	if err != nil {
 		fmt.Println("solana.PrivateKeyFromSolanaKeygenFile failed:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("mint: ", escrowMint.PublicKey())
+	fmt.Println("mint: ", mint.PublicKey())
 
-	faucet, _, err := solana.FindProgramAddress([][]byte{payer.PublicKey().Bytes(), []byte("faucet_vault")}, escrow_token_mint.ProgramID)
+	faucet, _, err := solana.FindProgramAddress([][]byte{mint.PublicKey().Bytes(), []byte("faucet_vault")}, escrow_token_mint.ProgramID)
 	if err != nil {
 		fmt.Println("solana.FindProgramAddress failed:", err)
 		os.Exit(1)
@@ -70,7 +70,7 @@ func main() {
 
 	builder := escrow_token_mint.NewInitializeInstruction(
 		payer.PublicKey(),
-		escrowMint.PublicKey(),
+		mint.PublicKey(),
 		faucet,
 		solana.SystemProgramID,
 		solana.SysVarRentPubkey,

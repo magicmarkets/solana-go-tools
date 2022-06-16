@@ -53,15 +53,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	escrowMint, err := solana.PublicKeyFromBase58(mintPubkey)
+	mint, err := solana.PublicKeyFromBase58(mintPubkey)
 	if err != nil {
 		fmt.Println("solana.PrivateKeyFromSolanaKeygenFile failed:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("mint: ", escrowMint)
+	fmt.Println("mint: ", mint)
 
-	faucet, _, err := solana.FindProgramAddress([][]byte{payer.PublicKey().Bytes(), []byte("faucet_vault")}, escrow_token_mint.ProgramID)
+	faucet, _, err := solana.FindProgramAddress([][]byte{mint.Bytes(), []byte("faucet_vault")}, escrow_token_mint.ProgramID)
 	if err != nil {
 		fmt.Println("solana.FindProgramAddress failed:", err)
 		os.Exit(1)
@@ -73,13 +73,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	ata, _, err := solana.FindAssociatedTokenAddress(payer.PublicKey(), escrowMint)
+	ata, _, err := solana.FindAssociatedTokenAddress(payer.PublicKey(), mint)
 	if err != nil {
 		fmt.Println("solana.FindAssociatedTokenAddress failed:", err)
 		os.Exit(1)
 	}
 
-	_, _ = sgo.CreateAssociatedTokenAccount(ctx, rpcClient, wsClient, payer.PublicKey(), escrowMint, payer)
+	_, _ = sgo.CreateAssociatedTokenAccount(ctx, rpcClient, wsClient, payer.PublicKey(), mint, payer)
 
 	lamports := uint64(amount * math.Pow10(9))
 
@@ -87,7 +87,7 @@ func main() {
 		lamports,
 		payer.PublicKey(),
 		ata,
-		escrowMint,
+		mint,
 		faucet,
 		authority,
 		solana.SystemProgramID,
