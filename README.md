@@ -37,4 +37,9 @@ Run an airdrop against the faucet. In order to avoid spam the faucet gives out
 tokens for devent SOL at a rate of 100x by default. Here we swap 1 SOL for 100
 escrow tokens:
 
-    go run faucet_airdrop/main.go -amount 1 -payer ~/.config/solana/id.json -mint <PUBKEY> -url d
+    go run faucet_airdrop/main.go -amount 1 -payer ~/.config/solana/id.json -mint <MINT PUBKEY> -url d
+
+If you hold the faucet sweep authority, you can regularly claim the devnet SOL
+deposited for tokens. On devnet for example:
+
+    go run sweep_faucet/main.go -amount 1.2 -authority ~/.config/solana/id.json -mint <MINT PUBKEY> -url d

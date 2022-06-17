@@ -100,7 +100,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	sig, err := sgo.SendTx(ctx, rpcClient, wsClient, []solana.Instruction{inst}, []solana.PrivateKey{}, payer, true)
+	sig, err := sgo.SendTx(ctx, rpcClient, wsClient, []solana.Instruction{inst}, []solana.PrivateKey{}, payer, false)
 	if err != nil {
 		fmt.Println("sgo.SendTx failed:", err)
 		os.Exit(1)
