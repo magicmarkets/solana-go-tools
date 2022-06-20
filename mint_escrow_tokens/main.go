@@ -40,14 +40,14 @@ func main() {
 		receiverAddress = payer.PublicKey().String()
 	}
 
+	wsURL, err := sgo.WSFromMoniker(clusterRPC)
+	if err == nil {
+		clusterWS = wsURL
+	}
+
 	rpcURL, err := sgo.RPCFromMoniker(clusterRPC)
 	if err == nil {
 		clusterRPC = rpcURL
-	}
-
-	wsURL, err := sgo.WSFromMoniker(clusterWS)
-	if err == nil {
-		clusterWS = wsURL
 	}
 
 	rpcClient := rpc.New(clusterRPC)
