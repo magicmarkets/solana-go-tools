@@ -44,13 +44,13 @@ To create a
 account for storing additional data attached to tokens, supply the `-name` and
 `-symbol` attributes to the create instruction above.
 
-go run create_mint/main.go \
-    -decimals 6 \
-    -payer ~/.config/solana/id.json \
-    -mint mytoken.json \
-    -name "magic.markets test token" \
-    -symbol "MAGIC" \
-    -url devnet
+    go run create_mint/main.go \
+        -decimals 6 \
+        -payer ~/.config/solana/id.json \
+        -mint MMapwF6C9AwjaYSU1Aw2oXqn8wijvfBKS5UCP3FJPyf.json \
+        -name "magic.markets test token" \
+        -symbol "MAGIC" \
+        -url devnet
 
 ## On-Chain Token Faucet
 
