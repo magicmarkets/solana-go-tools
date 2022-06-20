@@ -13,7 +13,8 @@ fantastic Go package
 Custom rpc and websocket URLs are supported as well as monikers (and by their
 first letter), mainnet-beta, testnet, devnet, localhost.
 
-Create a new token keypair using the [solana toolchain](https://github.com/solana-labs/solana/releases):
+Create a new token keypair using the [solana
+toolchain](https://github.com/solana-labs/solana/releases):
 
     solana-keygen new --outfile mytoken.json
 
@@ -21,25 +22,60 @@ Create a new token keypair using the [solana toolchain](https://github.com/solan
 
 Create the mint using the keypair on devnet:
 
-    go run create_escrow_mint/main.go -decimals 6 -payer ~/.config/solana/id.json -mint mytoken.json -url devnet
+    go run create_escrow_mint/main.go \
+        -decimals 6 \
+        -payer ~/.config/solana/id.json \
+        -mint mytoken.json \
+        -url devnet
 
 Mint 100k tokens to acccount `<PUBKEY>` on devnet:
 
-    go run mint_escrow_tokens/main.go -amount 100000 -mint mytoken.json -payer ~/.config/solana/id.json -receiver <PUBKEY> -url d
+    go run mint_escrow_tokens/main.go \
+        -amount 100000 \
+        -mint mytoken.json \
+        -payer ~/.config/solana/id.json \
+        -receiver <PUBKEY> \
+        -url d
+
+### Metaplex Token Metadata
+
+To create a
+[metadata](https://docs.metaplex.com/programs/token-metadata/accounts#metadata)
+account for storing additional data attached to tokens, supply the `-name` and
+`-symbol` attributes to the create instruction above.
+
+go run create_escrow_mint/main.go \
+    -decimals 6 \
+    -payer ~/.config/solana/id.json \
+    -mint mytoken.json \
+    -name "magic.markets test token" \
+    -symbol "MAGIC" \
+    -url devnet
 
 ## On-Chain Escrow Token Faucet
 
 Transfer the mint authority to an on-chain faucet on devnet:
 
-    go run init_escrow_faucet/main.go -mint mytoken.json -authority ~/.config/solana/id.json -url d
+    go run init_escrow_faucet/main.go \
+        -mint mytoken.json \
+        -authority ~/.config/solana/id.json \
+        -url d
 
 Run an airdrop against the faucet. In order to avoid spam the faucet gives out
 tokens for devent SOL at a rate of 100x by default. Here we swap 1 SOL for 100
 escrow tokens:
 
-    go run faucet_airdrop/main.go -amount 1 -payer ~/.config/solana/id.json -mint <MINT PUBKEY> -url d
+    go run faucet_airdrop/main.go \
+        -amount 1 \
+        -payer ~/.config/solana/id.json \
+        -mint <MINT PUBKEY> \
+        -url d
 
 If you hold the faucet sweep authority, you can regularly claim the devnet SOL
 deposited for tokens. On devnet for example:
 
-    go run sweep_faucet/main.go -amount 1.2 -authority ~/.config/solana/id.json -mint <MINT PUBKEY> -url d
+    go run sweep_faucet/main.go \
+        -amount 1.2 \
+        -authority ~/.config/solana/id.json \
+        -mint <MINT PUBKEY> \
+        -url d
